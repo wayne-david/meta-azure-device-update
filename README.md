@@ -121,18 +121,27 @@ BBFILE_PATTERN_azure-device-update := "^${LAYERDIR}/"
 # This is applicable where we are using appends files to adjust other recipes.
 BBFILE_PRIORITY_azure-device-update = "16"
 LAYERDEPENDS_azure-device-update = "swupdate"
-LAYERSERIES_COMPAT_azure-device-update  = "warrior"
+LAYERSERIES_COMPAT_azure-device-update  = "zeus"
 
 
 # Layer-specific configuration variables.
 # These values can/will be overriden by environment variables
 # if those variables are added to the BB_ENV_EXTRAWHITE environment variable.
 
+# ADU_SOFTWARE_NAME should be used for the name of the software provider. It is
+# used in the manifest.json file which you will upload to the Azure Portal.
+ADU_SOFTWARE_PROVIDER ?= "Contoso"
+# ADU_SOFTWARE_NAME should be used for the name of the updated software. It is
+# used in the manifest.json file which you will upload to the Azure Portal.
+ADU_SOFTWARE_NAME ?= "ADU Raspberry Pi Example"
 # ADU_SOFTWARE_VERSION will be written to a file that is read by the ADU Client.
 # This value will be reported through the Device Information PnP interface by the ADU Client
 # and is the version of the installed content/image/firmware.
 # For the ADU reference image this is set to a new value every build.
 ADU_SOFTWARE_VERSION ?= "0.0.0.1"
+# ADU_INSTALLED_CRITERIA will be used by the Azure Portal to determine if the
+# current version can be installed on the device. Should be lower than your current version.
+ADU_INSTALLED_CRITERIA ?= "0.0.0.1"
 
 # HW_REV will be written to a file that is used by swupdate
 # to determine hardware compatibility.
@@ -195,8 +204,8 @@ This file builds and installs our ADU sample code.
 
 LICENSE = "CLOSED"
 
-ADUC_GIT_BRANCH ?= "master"
-ADUC_SRC_URI ?= "git://github.com/Azure/adu-private-preview;branch=${ADUC_GIT_BRANCH}"
+ADUC_GIT_BRANCH ?= "main"
+ADUC_SRC_URI ?= "git://github.com/Azure/iot-hub-device-update;branch=${ADUC_GIT_BRANCH}"
 SRC_URI = "${ADUC_SRC_URI}"
 
 # This code handles setting variables for either git or for a local file.
@@ -346,7 +355,7 @@ FILES_${PN} += "${systemd_system_unitdir}/adu-agent.service"
 
 REQUIRED_DISTRO_FEATURES = "systemd"
 
-DEPENDS_${PN} += "azure-device-update deliveryoptimization-agent-service"
+DEPENDS += "azure-device-update deliveryoptimization-agent-service"
 
 RDEPENDS_${PN} += "azure-device-update deliveryoptimization-agent-service"
 
@@ -596,9 +605,7 @@ IMAGE_INSTALL_append = " \
     packagegroup-core-full-cmdline \
     openssh connman connman-client \
     parted fw-env-conf \
-    binutils \
     adu-agent-service \
-    register-adu-extensions \
     "
 
 export IMAGE_BASENAME = "adu-base-image"
